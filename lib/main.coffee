@@ -1,41 +1,43 @@
 url = require 'url'
 fs = require 'fs-plus'
+view = require './view'
+renderer = require './renderer'
 
-MarkdownPreviewView = null
-renderer = null
+# JSDocPreviewView = null
 
-isMarkdownPreviewView = (object) ->
-  MarkdownPreviewView ?= require './markdown-preview-view'
-  object instanceof MarkdownPreviewView
+isView = (v) ->
+  # JSDocPreviewView ?= view
+  v instanceof view
 
 module.exports =
   activate: ->
-    if parseFloat(atom.getVersion()) < 1.7
-      atom.deserializers.add
-        name: 'MarkdownPreviewView'
-        deserialize: module.exports.createMarkdownPreviewView.bind(module.exports)
+    # TODO This has to go back in
+    # if parseFloat(atom.getVersion()) < 1.7
+    #   atom.deserializers.add
+    #     name: 'JSDocPreviewView'
+    #     deserialize: module.exports.createView.bind module.exports
 
     atom.commands.add 'atom-workspace',
-      'markdown-preview:toggle': =>
-        @toggle()
-      'markdown-preview:copy-html': =>
-        @copyHtml()
-      'markdown-preview:toggle-break-on-single-newline': ->
-        keyPath = 'markdown-preview.breakOnSingleNewline'
-        atom.config.set(keyPath, not atom.config.get(keyPath))
+      'jsdoc-preview:toggle': => @toggle()
+      'jsdoc-preview:copy-html': => @copyHtml()
+    #   'jsdoc-preview:toggle-break-on-single-newline': ->
+    #     keyPath = 'markdown-preview.breakOnSingleNewline'
+    #     atom.config.set(keyPath, not atom.config.get(keyPath))
 
     previewFile = @previewFile.bind(this)
-    atom.commands.add '.tree-view .file .name[data-name$=\\.markdown]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.md]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.mdown]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.mkd]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.mkdown]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.ron]', 'markdown-preview:preview-file', previewFile
-    atom.commands.add '.tree-view .file .name[data-name$=\\.txt]', 'markdown-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.markdown]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.md]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.mdown]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.mkd]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.mkdown]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.ron]', 'jsdoc-preview:preview-file', previewFile
+    # atom.commands.add '.tree-view .file .name[data-name$=\\.txt]', 'jsdoc-preview:preview-file', previewFile
+    atom.commands.add '.tree-view .file .name[data-name$=\\.js]', 'jsdoc-preview:toggle', previewFile
+    atom.commands.add '.tree-view .file .name[data-name$=\\.coffee]', 'jsdoc-preview:toggle', previewFile
 
     atom.workspace.addOpener (uriToOpen) =>
       [protocol, path] = uriToOpen.split('://')
-      return unless protocol is 'markdown-preview'
+      return unless protocol is 'jsdoc-preview'
 
       try
         path = decodeURI(path)
@@ -43,30 +45,28 @@ module.exports =
         return
 
       if path.startsWith 'editor/'
-        @createMarkdownPreviewView(editorId: path.substring(7))
+        @createView(editorId: path.substring(7))
       else
-        @createMarkdownPreviewView(filePath: path)
+        @createView(filePath: path)
 
-  createMarkdownPreviewView: (state) ->
-    if state.editorId or fs.isFileSync(state.filePath)
-      MarkdownPreviewView ?= require './markdown-preview-view'
-      new MarkdownPreviewView(state)
+  createView: (state) ->
+    if state.editorId or fs.isFileSync state.filePath
+      new view(state)
 
   toggle: ->
-    if isMarkdownPreviewView(atom.workspace.getActivePaneItem())
+    if isView(atom.workspace.getActivePaneItem())
       atom.workspace.destroyActivePaneItem()
       return
 
     editor = atom.workspace.getActiveTextEditor()
     return unless editor?
 
-    grammars = atom.config.get('markdown-preview.grammars') ? []
+    grammars = atom.config.get('jsdoc-preview.grammars') ? []
     return unless editor.getGrammar().scopeName in grammars
 
     @addPreviewForEditor(editor) unless @removePreviewForEditor(editor)
 
-  uriForEditor: (editor) ->
-    "markdown-preview://editor/#{editor.id}"
+  uriForEditor: (editor) -> "jsdoc-preview://editor/#{editor.id}"
 
   removePreviewForEditor: (editor) ->
     uri = @uriForEditor(editor)
@@ -80,15 +80,13 @@ module.exports =
   addPreviewForEditor: (editor) ->
     uri = @uriForEditor(editor)
     previousActivePane = atom.workspace.getActivePane()
-    options =
-      searchAllPanes: true
-    if atom.config.get('markdown-preview.openPreviewInSplitPane')
-      options.split = 'right'
-    atom.workspace.open(uri, options).then (markdownPreviewView) ->
-      if isMarkdownPreviewView(markdownPreviewView)
-        previousActivePane.activate()
+    options = searchAllPanes: true
+    # if atom.config.get('jsdoc-preview.openPreviewInSplitPane')
+    options.split = 'right'
+    atom.workspace.open(uri, options).then (view) ->
+      previousActivePane.activate() if isView view
 
-  previewFile: ({target}) ->
+  previewFile: ({ target }) ->
     filePath = target.dataset.path
     return unless filePath
 
@@ -96,16 +94,17 @@ module.exports =
       @addPreviewForEditor(editor)
       return
 
-    atom.workspace.open "markdown-preview://#{encodeURI(filePath)}", searchAllPanes: true
+    atom.workspace.open "jsdoc-preview://#{encodeURI(filePath)}", searchAllPanes: true
 
   copyHtml: ->
     editor = atom.workspace.getActiveTextEditor()
     return unless editor?
 
-    renderer ?= require './renderer'
+    # renderer ?= require './renderer'
     text = editor.getSelectedText() or editor.getText()
-    renderer.toHTML text, editor.getPath(), editor.getGrammar(), (error, html) ->
-      if error
-        console.warn('Copying Markdown as HTML failed', error)
-      else
-        atom.clipboard.write(html)
+
+    # renderer.toHTML text, editor.getPath(), editor.getGrammar(), (error, html) ->
+    #   if error
+    #     console.warn('Copying Markdown as HTML failed', error)
+    #   else
+    #     atom.clipboard.write(html)

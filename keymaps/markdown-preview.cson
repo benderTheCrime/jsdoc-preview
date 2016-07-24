@@ -1,16 +1,16 @@
 'atom-workspace, atom-workspace atom-text-editor':
-  'ctrl-M': 'markdown-preview:toggle'
+  'ctrl-shift-d': 'jsdoc-preview:toggle'
 
 '.platform-darwin .markdown-preview':
-  'cmd-+': 'markdown-preview:zoom-in'
-  'cmd-=': 'markdown-preview:zoom-in'
-  'cmd--': 'markdown-preview:zoom-out'
-  'cmd-_': 'markdown-preview:zoom-out'
-  'cmd-0': 'markdown-preview:reset-zoom'
+  'cmd-+': 'jsdoc-preview:zoom-in'
+  'cmd-=': 'jsdoc-preview:zoom-in'
+  'cmd--': 'jsdoc-preview:zoom-out'
+  'cmd-_': 'jsdoc-preview:zoom-out'
+  'cmd-0': 'jsdoc-preview:reset-zoom'
 
 '.platform-win32 .markdown-preview, .platform-linux .markdown-preview':
-  'ctrl-+': 'markdown-preview:zoom-in'
-  'ctrl-=': 'markdown-preview:zoom-in'
-  'ctrl--': 'markdown-preview:zoom-out'
-  'ctrl-_': 'markdown-preview:zoom-out'
-  'ctrl-0': 'markdown-preview:reset-zoom'
+  'ctrl-+': 'jsdoc-preview:zoom-in'
+  'ctrl-=': 'jsdoc-preview:zoom-in'
+  'ctrl--': 'jsdoc-preview:zoom-out'
+  'ctrl-_': 'jsdoc-preview:zoom-out'
+  'ctrl-0': 'jsdoc-preview:reset-zoom'

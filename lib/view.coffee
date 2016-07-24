@@ -2,16 +2,15 @@ path = require 'path'
 
 {Emitter, Disposable, CompositeDisposable, File} = require 'atom'
 {$, $$$, ScrollView} = require 'atom-space-pen-views'
-Grim = require 'grim'
+# Grim = require 'grim'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 
 renderer = require './renderer'
 
-module.exports =
-class MarkdownPreviewView extends ScrollView
+module.exports = class extends ScrollView
   @content: ->
-    @div class: 'markdown-preview native-key-bindings', tabindex: -1
+    @div class: 'jsdoc-preview native-key-bindings', tabindex: -1
 
   constructor: ({@editorId, @filePath}) ->
     super
@@ -33,7 +32,7 @@ class MarkdownPreviewView extends ScrollView
           @subscribeToFilePath(@filePath)
 
   serialize: ->
-    deserializer: 'MarkdownPreviewView'
+    deserializer: 'JSDocPreviewView'
     filePath: @getPath() ? @filePath
     editorId: @editorId
 
@@ -48,7 +47,7 @@ class MarkdownPreviewView extends ScrollView
     new Disposable
 
   onDidChangeMarkdown: (callback) ->
-    @emitter.on 'did-change-markdown', callback
+    @emitter.on 'did-change-jsdoc', callback
 
   subscribeToFilePath: (filePath) ->
     @file = new File(filePath)
@@ -70,9 +69,11 @@ class MarkdownPreviewView extends ScrollView
         atom.workspace?.paneForItem(this)?.destroyItem(this)
 
     if atom.workspace?
+      # debugger;
       resolve()
     else
-      @disposables.add atom.packages.onDidActivateInitialPackages(resolve)
+      #  debugger
+      @disposables.add atom.packages.onDidActivateInitialPackages resolve
 
   editorForId: (editorId) ->
     for editor in atom.workspace.getTextEditors()
@@ -80,11 +81,13 @@ class MarkdownPreviewView extends ScrollView
     null
 
   handleEvents: ->
-    @disposables.add atom.grammars.onDidAddGrammar => _.debounce((=> @renderMarkdown()), 250)
-    @disposables.add atom.grammars.onDidUpdateGrammar _.debounce((=> @renderMarkdown()), 250)
+    # debugger
+    # @disposables.add atom.grammars.onDidAddGrammar => _.debounce((=> @renderMarkdown()), 250)
+    # @disposables.add atom.grammars.onDidUpdateGrammar _.debounce((=> @renderMarkdown()), 250)
 
     atom.commands.add @element,
       'core:move-up': =>
+        debugger
         @scrollUp()
       'core:move-down': =>
         @scrollDown()
@@ -93,13 +96,13 @@ class MarkdownPreviewView extends ScrollView
         @saveAs()
       'core:copy': (event) =>
         event.stopPropagation() if @copyToClipboard()
-      'markdown-preview:zoom-in': =>
+      'jsdoc-preview:zoom-in': =>
         zoomLevel = parseFloat(@css('zoom')) or 1
         @css('zoom', zoomLevel + .1)
-      'markdown-preview:zoom-out': =>
+      'jsdoc-preview:zoom-out': =>
         zoomLevel = parseFloat(@css('zoom')) or 1
         @css('zoom', zoomLevel - .1)
-      'markdown-preview:reset-zoom': =>
+      'jsdoc-preview:reset-zoom': =>
         @css('zoom', 1)
 
     changeHandler = =>
@@ -111,29 +114,29 @@ class MarkdownPreviewView extends ScrollView
         pane.activateItem(this)
 
     if @file?
-      @disposables.add @file.onDidChange(changeHandler)
+      @disposables.add @file.onDidChange changeHandler
     else if @editor?
       @disposables.add @editor.getBuffer().onDidStopChanging ->
-        changeHandler() if atom.config.get 'markdown-preview.liveUpdate'
+        changeHandler() if atom.config.get 'jsdoc-preview.liveUpdate'
       @disposables.add @editor.onDidChangePath => @emitter.emit 'did-change-title'
       @disposables.add @editor.getBuffer().onDidSave ->
-        changeHandler() unless atom.config.get 'markdown-preview.liveUpdate'
+        changeHandler() unless atom.config.get 'jsdoc-preview.liveUpdate'
       @disposables.add @editor.getBuffer().onDidReload ->
-        changeHandler() unless atom.config.get 'markdown-preview.liveUpdate'
+        changeHandler() unless atom.config.get 'jsdoc-preview.liveUpdate'
 
-    @disposables.add atom.config.onDidChange 'markdown-preview.breakOnSingleNewline', changeHandler
+    # @disposables.add atom.config.onDidChange 'jsdoc-preview.breakOnSingleNewline', changeHandler
 
-    @disposables.add atom.config.observe 'markdown-preview.useGitHubStyle', (useGitHubStyle) =>
-      if useGitHubStyle
-        @element.setAttribute('data-use-github-style', '')
-      else
-        @element.removeAttribute('data-use-github-style')
+    # @disposables.add atom.config.observe 'jsdoc-preview.useGitHubStyle', (useGitHubStyle) =>
+    #   if useGitHubStyle
+    #     @element.setAttribute('data-use-github-style', '')
+    #   else
+    #     @element.removeAttribute('data-use-github-style')
 
   renderMarkdown: ->
     @showLoading() unless @loaded
-    @getMarkdownSource().then (source) => @renderMarkdownText(source) if source?
+    @getJSDocSource().then (source) => @renderJSDocText(source) if source?
 
-  getMarkdownSource: ->
+  getJSDocSource: ->
     if @file?.getPath()
       @file.read()
     else if @editor?
@@ -142,21 +145,22 @@ class MarkdownPreviewView extends ScrollView
       Promise.resolve(null)
 
   getHTML: (callback) ->
-    @getMarkdownSource().then (source) =>
+    @getJSDocSource().then (source) =>
       return unless source?
-
       renderer.toHTML source, @getPath(), @getGrammar(), callback
 
-  renderMarkdownText: (text) ->
+  renderJSDocText: (text) ->
     renderer.toDOMFragment text, @getPath(), @getGrammar(), (error, domFragment) =>
       if error
         @showError(error)
       else
+
+        @element = domFragment
         @loading = false
         @loaded = true
         @html(domFragment)
-        @emitter.emit 'did-change-markdown'
-        @originalTrigger('markdown-preview:markdown-changed')
+        @emitter.emit 'did-change-jsdoc'
+        @originalTrigger('jsdoc-preview:jsdoc-changed')
 
   getTitle: ->
     if @file?
@@ -164,16 +168,16 @@ class MarkdownPreviewView extends ScrollView
     else if @editor?
       "#{@editor.getTitle()} Preview"
     else
-      "Markdown Preview"
+      "JSDoc Preview"
 
   getIconName: ->
     "markdown"
 
   getURI: ->
     if @file?
-      "markdown-preview://#{@getPath()}"
+      "jsdoc-preview://#{@getPath()}"
     else
-      "markdown-preview://editor/#{@editorId}"
+      "jsdoc-preview://editor/#{@editorId}"
 
   getPath: ->
     if @file?
@@ -184,52 +188,56 @@ class MarkdownPreviewView extends ScrollView
   getGrammar: ->
     @editor?.getGrammar()
 
-  getDocumentStyleSheets: -> # This function exists so we can stub it
-    document.styleSheets
+  # getDocumentStyleSheets: -> # This function exists so we can stub it
+  #   document.styleSheets
 
-  getTextEditorStyles: ->
-    textEditorStyles = document.createElement("atom-styles")
-    textEditorStyles.initialize(atom.styles)
-    textEditorStyles.setAttribute "context", "atom-text-editor"
-    document.body.appendChild textEditorStyles
+  # getTextEditorStyles: ->
+  #   textEditorStyles = document.createElement 'atom-styles'
+  #   textEditorStyles.initialize atom.styles
+  #   textEditorStyles.setAttribute 'context', 'atom-text-editor'
+  #   document.body.appendChild textEditorStyles
 
     # Extract style elements content
-    Array.prototype.slice.apply(textEditorStyles.childNodes).map (styleElement) ->
-      styleElement.innerText
+    # Array.prototype.slice.apply(textEditorStyles.childNodes).map (styleElement) ->
+    #   styleElement.innerText
 
-  getMarkdownPreviewCSS: ->
-    markdowPreviewRules = []
-    ruleRegExp = /\.markdown-preview/
-    cssUrlRefExp = /url\(atom:\/\/markdown-preview\/assets\/(.*)\)/
-
-    for stylesheet in @getDocumentStyleSheets()
-      if stylesheet.rules?
-        for rule in stylesheet.rules
-          # We only need `.markdown-review` css
-          markdowPreviewRules.push(rule.cssText) if rule.selectorText?.match(ruleRegExp)?
-
-    markdowPreviewRules
-      .concat(@getTextEditorStyles())
-      .join('\n')
-      .replace(/atom-text-editor/g, 'pre.editor-colors')
-      .replace(/:host/g, '.host') # Remove shadow-dom :host selector causing problem on FF
-      .replace cssUrlRefExp, (match, assetsName, offset, string) -> # base64 encode assets
-        assetPath = path.join __dirname, '../assets', assetsName
-        originalData = fs.readFileSync assetPath, 'binary'
-        base64Data = new Buffer(originalData, 'binary').toString('base64')
-        "url('data:image/jpeg;base64,#{base64Data}')"
+  # getJSDocPreviewCSS: ->
+  #
+  #
+  #   # TODO Custom css
+  #   rules = []
+  #   # ruleRegExp = /\.jsdoc-preview/
+  #   # cssUrlRefExp = /url\(atom:\/\/jsdoc-preview\/assets\/(.*)\)/
+  #
+  #   for stylesheet in @getDocumentStyleSheets()
+  #     if stylesheet.rules?
+  #       for rule in stylesheet.rules
+  #
+  #         # We only need `.markdown-review` css
+  #         rules.push(rule.cssText) # if rule.selectorText?.match(ruleRegExp)?
+  #
+  #   rules
+  #     # .concat(@getTextEditorStyles())
+  #     .join('\n')
+  #     # .replace(/atom-text-editor/g, 'pre.editor-colors')
+  #     #.replace(/:host/g, '.host') # Remove shadow-dom :host selector causing problem on FF
+  #     # .replace cssUrlRefExp, (match, assetsName, offset, string) -> # base64 encode assets
+  #     #   assetPath = path.join __dirname, '../assets', assetsName
+  #     #   originalData = fs.readFileSync assetPath, 'binary'
+  #     #   base64Data = new Buffer(originalData, 'binary').toString('base64')
+  #     #   "url('data:image/jpeg;base64,#{base64Data}')"
 
   showError: (result) ->
     failureMessage = result?.message
 
     @html $$$ ->
-      @h2 'Previewing Markdown Failed'
+      @h2 'Previewing JSDoc Failed'
       @h3 failureMessage if failureMessage?
 
   showLoading: ->
     @loading = true
     @html $$$ ->
-      @div class: 'markdown-spinner', 'Loading Markdown\u2026'
+      @div class: 'jsdoc-spinner', 'Loading JSDoc\u2026'
 
   copyToClipboard: ->
     return false if @loading
@@ -239,11 +247,11 @@ class MarkdownPreviewView extends ScrollView
     selectedNode = selection.baseNode
 
     # Use default copy event handler if there is selected text inside this view
-    return false if selectedText and selectedNode? and (@[0] is selectedNode or $.contains(@[0], selectedNode))
+    return false if selectedText and selectedNode? and (@[ 0 ] is selectedNode or $.contains(@[ 0 ], selectedNode))
 
     @getHTML (error, html) ->
       if error?
-        console.warn('Copying Markdown as HTML failed', error)
+        console.warn('Copying JSDoc as HTML failed', error)
       else
         atom.clipboard.write(html)
 
@@ -253,12 +261,12 @@ class MarkdownPreviewView extends ScrollView
     return if @loading
 
     filePath = @getPath()
-    title = 'Markdown to HTML'
+    title = 'JSDoc to HTML'
     if filePath
       title = path.parse(filePath).name
       filePath += '.html'
     else
-      filePath = 'untitled.md.html'
+      filePath = 'untitled.html'
       if projectPath = atom.project.getPaths()[0]
         filePath = path.join(projectPath, filePath)
 
@@ -266,28 +274,28 @@ class MarkdownPreviewView extends ScrollView
 
       @getHTML (error, htmlBody) =>
         if error?
-          console.warn('Saving Markdown as HTML failed', error)
+          console.warn('Saving JSDoc as HTML failed', error)
         else
+          #
+          # html = """
+          #   <!DOCTYPE html>
+          #   <html>
+          #     <head>
+          #         <meta charset="utf-8" />
+          #         <title>#{title}</title>
+          #         <style>#{@getJSDocPreviewCSS()}</style>
+          #     </head>
+          #     <body class='jsdoc-preview' data-use-github-style>#{htmlBody}</body>
+          #   </html>""" + "\n" # Ensure trailing newline
 
-          html = """
-            <!DOCTYPE html>
-            <html>
-              <head>
-                  <meta charset="utf-8" />
-                  <title>#{title}</title>
-                  <style>#{@getMarkdownPreviewCSS()}</style>
-              </head>
-              <body class='markdown-preview' data-use-github-style>#{htmlBody}</body>
-            </html>""" + "\n" # Ensure trailing newline
+          # fs.writeFileSync(htmlFilePath, html)
+          fs.writeFileSync htmlFilePath, htmlBody
+          atom.workspace.open htmlFilePath
 
-          fs.writeFileSync(htmlFilePath, html)
-          atom.workspace.open(htmlFilePath)
+  # isEqual: (other) -> @[0] is other?[0] # Compare DOM elements
 
-  isEqual: (other) ->
-    @[0] is other?[0] # Compare DOM elements
-
-if Grim.includeDeprecatedAPIs
-  MarkdownPreviewView::on = (eventName) ->
-    if eventName is 'markdown-preview:markdown-changed'
-      Grim.deprecate("Use MarkdownPreviewView::onDidChangeMarkdown instead of the 'markdown-preview:markdown-changed' jQuery event")
-    super
+# if Grim.includeDeprecatedAPIs
+#   MarkdownPreviewView::on = (eventName) ->
+#     if eventName is 'jsdoc-preview:jsdoc-changed'
+#       Grim.deprecate("Use MarkdownPreviewView::onDidChangeMarkdown instead of the 'jsdoc-preview:jsdoc-changed' jQuery event")
+#     super
