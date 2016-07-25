@@ -1,14 +1,14 @@
 'atom-workspace, atom-workspace atom-text-editor':
   'ctrl-shift-d': 'jsdoc-preview:toggle'
 
-'.platform-darwin .markdown-preview':
+'.platform-darwin .jsdoc-preview':
   'cmd-+': 'jsdoc-preview:zoom-in'
   'cmd-=': 'jsdoc-preview:zoom-in'
   'cmd--': 'jsdoc-preview:zoom-out'
   'cmd-_': 'jsdoc-preview:zoom-out'
   'cmd-0': 'jsdoc-preview:reset-zoom'
 
-'.platform-win32 .markdown-preview, .platform-linux .markdown-preview':
+'.platform-win32 .jsdoc-preview, .platform-linux .markdown-preview':
   'ctrl-+': 'jsdoc-preview:zoom-in'
   'ctrl-=': 'jsdoc-preview:zoom-in'
   'ctrl--': 'jsdoc-preview:zoom-out'
