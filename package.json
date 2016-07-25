@@ -1,6 +1,6 @@
 {
   "name": "jsdoc-preview",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "./lib/index",
   "description": "Open a rendered version of the JSDoc docstrings in the current editor with `ctrl-shift-d`.",
   "repository": {
