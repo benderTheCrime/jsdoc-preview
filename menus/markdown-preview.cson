@@ -10,10 +10,6 @@
 ]
 
 'context-menu':
-  '.jsdoc-preview': [
-    {label: 'Copy As HTML', command: 'core:copy'}
-    {label: 'Save As HTML\u2026', command: 'core:save-as'}
-  ]
   '.tree-view .file .name[data-name$=\\.js]':
     [ label: 'JSDoc Preview', command: 'jsdoc-preview:preview-file' ]
   '.tree-view .file .name[data-name$=\\.coffee]':

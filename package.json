@@ -1,21 +1,25 @@
 {
   "name": "jsdoc-preview",
-  "version": "0.1.0",
-  "main": "./lib/main",
+  "version": "1.0.0",
+  "main": "./lib/index",
   "description": "Open a rendered version of the JSDoc docstrings in the current editor with `ctrl-shift-d`.",
-  "repository": "https://github.com/benderTheCrime/jsdoc-preview",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benderTheCrime/jsdoc-preview.git"
+  },
+  "bugs": {
+    "url": "https://github.com/benderTheCrime/jsdoc-preview/issues"
+  },
   "license": "MIT",
   "engines": {
     "atom": "*"
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.0",
-    "esdoc": "^0.4.7",
     "fs-plus": "^2.0.0",
     "grim": "^1.2.1",
     "highlights": "^1.2",
     "jsdoc": "^3.4.0",
-    "mkdirp": "^0.5.1",
     "temp": "^0.8.1",
     "underscore-plus": "^1.0.0",
     "wrench": "^1.5.0"
@@ -23,25 +27,21 @@
   "devDependencies": {
     "coffeelint": "^1.9.7"
   },
-  "deserializers": {
-    "JSDocPreviewView": "createJSDocPreviewView"
-  },
   "configSchema": {
     "liveUpdate": {
       "type": "boolean",
       "default": true,
       "description": "Re-render the preview as the contents of the source changes, without requiring the source buffer to be saved. If disabled, the preview is re-rendered only when the buffer is saved to disk."
     },
-    "grammars": {
+    "configFilePath": {
+      "type": "string",
+      "default": "conf.json",
+      "description": "Defines the path to the configuration file JSDoc uses to render JSDocs"
+    },
+    "customStyleSheets": {
       "type": "array",
-      "default": [
-        "source.js",
-        "source.javascript",
-        "source.es6",
-        "source.coffee",
-        "source.litcoffee"
-      ],
-      "description": "List of scopes for languages for which previewing is enabled. See [this README](https://github.com/atom/spell-check#spell-check-package-) for more information on finding the correct scope for a specific language."
+      "default": [],
+      "description": "Defines the path(s) to custom stylesheets used in the rendering of the JSDoc preview"
     }
   }
 }

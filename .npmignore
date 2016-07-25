@@ -1,0 +1,6 @@
+.editorconfig
+.gitattributes
+.gitignore
+.jsdoc-preview-doc/*
+.npmignore
+.travis.yml

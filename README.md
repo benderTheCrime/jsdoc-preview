@@ -1,26 +1,21 @@
-# Markdown Preview package
-[![OS X Build Status](https://travis-ci.org/atom/markdown-preview.svg?branch=master)](https://travis-ci.org/atom/markdown-preview) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/bvh0evhh4v6w9b29/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/markdown-preview/branch/master) [![Dependency Status](https://david-dm.org/atom/markdown-preview.svg)](https://david-dm.org/atom/markdown-preview)
+# JSDoc Preview package
 
-Show the rendered HTML markdown to the right of the current editor using <kbd>ctrl-shift-m</kbd>.
+Show the rendered HTML markdown to the right of the current editor using <kbd>ctrl-shift-d</kbd>.
 
-It is currently enabled for `.markdown`, `.md`, `.mdown`, `.mkd`, `.mkdown`, `.ron`, and `.txt` files.
+It is currently enabled for `.js`, `.javascript`, and `.es6` files.
 
-![markdown-preview](https://cloud.githubusercontent.com/assets/378023/10013086/24cad23e-6149-11e5-90e6-663009210218.png)
+**NOTE:** This package will ignore all JSDoc plugins and themes defined in a custom `conf.json`
 
 ## Customize
 
-By default Markdown Preview uses the colors of the active syntax theme. Enable
+By default, JSDoc Preview uses the default JSDoc stylesheets (minus the fonts). You can add your own css in the __package settings__ to make it look however you would like.
 
-- [x] Use GitHub.com style
+- [x] Custom Style Sheets
 
-in the __package settings__ to make it look closer to how markdown files get rendered on github.com.
+If you want to use a JSDoc theme, this is where you would add the stylesheets for the theme instead of defining it in `conf.json`.
 
-![markdown-preview GitHub style](https://cloud.githubusercontent.com/assets/378023/10013087/24ccc7ec-6149-11e5-97ea-53a842a715ea.png)
+**NOTE:** If you don't want to modify the other styles in your editor, wrap your custom styles in a `.jsdoc-preview` class.
 
-To customize even further, the styling can be overridden in your `styles.less` file. For example:
+You may also define your own JSDoc `conf.json` in __package_settings__:
 
-```css
-.markdown-preview.markdown-preview {
-  background-color: #444;
-}
-```
+- [x] Config File Path
