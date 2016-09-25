@@ -2,9 +2,10 @@ const path = require('path');
 const fs = require('fs');
 
 const renderer = require('../../lib/renderer.coffee');
+const util = require('../../lib/util.coffee');
 const { configSchema: { configFilePath: { default: defaultPath } } } = require('../../package.json');
 
-const fixturesPath = '../fixture';
+const fixturesPath = `..${util.isWin() ? '\\' : '/'}fixture`;
 
 describe('renderer.coffee', function() {
     describe('toDOMFragment', function() {
@@ -53,14 +54,16 @@ describe('renderer.coffee', function() {
             expect(renderer._getConfigFilePath()).toEqual(customConfigPath);
         });
     });
-    describe('createTempFolder', function() {
-        it('createTempFolder', function() {
-            // if (!/win/.test(process.platform)) {
-                expect(renderer._createTempFolder()).toContain('/var/folders/');
-                expect(renderer._createTempFolder()).toContain('/T');
-            // } else {
-                // Whatever Windows does
-            // }
+    describe('createTempDir', function() {
+        it('createTempDir', function() {
+            if (util.isWin()) {
+                expect(
+                    renderer._createTempDir()
+                ).toContain('\\Users\\IEUser\\AppData\\Local\\Temp');
+            } else {
+                expect(renderer._createTempDir()).toContain('/var/folders/');
+                expect(renderer._createTempDir()).toContain('/T');
+            }
         });
     });
 });
