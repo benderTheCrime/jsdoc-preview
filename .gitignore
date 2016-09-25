@@ -317,3 +317,6 @@ local.properties
 ### Sass ###
 .sass-cache/
 *.css.map
+
+### Custom ###
+TODO.md

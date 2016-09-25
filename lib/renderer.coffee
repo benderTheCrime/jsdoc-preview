@@ -1,6 +1,5 @@
 path = require 'path'
-# exec = require('child_process').execSync
-jsdoc = require('jsdoc-api');
+jsdoc = require 'jsdoc-api'
 fs = require 'fs'
 
 tempfile = require 'tempfile'
