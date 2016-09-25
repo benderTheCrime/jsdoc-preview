@@ -1,2 +1,2 @@
 module.exports =
-  isWin: () -> /^win/.test(process.platform)
+  isWin: () -> /^win/.test process.platform
