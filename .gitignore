@@ -317,8 +317,3 @@ local.properties
 ### Sass ###
 .sass-cache/
 *.css.map
-
-
-### Custom ###
-.jsdoc-preview-doc/*
-!.jsdoc-preview-doc/.keep
