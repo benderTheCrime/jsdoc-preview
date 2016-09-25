@@ -318,7 +318,5 @@ local.properties
 .sass-cache/
 *.css.map
 
-
 ### Custom ###
-.jsdoc-preview-doc/*
-!.jsdoc-preview-doc/.keep
+TODO.md

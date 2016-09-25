@@ -1,42 +1,47 @@
 path = require 'path'
-exec = require('child_process').execSync
+jsdoc = require 'jsdoc-api'
 fs = require 'fs'
 
+tempfile = require 'tempfile'
+
+util = require './util'
+
+slicer = if util.isWin() then '\\' else '/'
 packagePath = path.dirname __dirname
 
-exports.toDOMFragment = (text = '', filePath, grammar, callback) ->
+getConfigFilePath = () -> atom.config.get('jsdoc-preview.configFilePath') or path.join packagePath, 'conf.json'
+createTempDir = () -> tempFile = tempfile().split(slicer).slice(0, -1).join slicer
+
+module.exports =
+  toDOMFragment: (filePath, callback = () -> null) ->
+    tempDir = createTempDir()
     el = document.createElement 'div'
     domFragment = document.createElement 'div'
 
-    # TODO This causes performance issues
-    exec "rm -rf #{packagePath}/.jsdoc-preview-doc/*"
-    exec "touch #{packagePath}/.jsdoc-preview-doc/.keep"
-
     try
-      exec "#{packagePath}/node_modules/.bin/jsdoc #{filePath} -c #{getConfig()} -d #{packagePath}/.jsdoc-preview-doc"
 
-      file = fs.readFileSync "#{packagePath}/.jsdoc-preview-doc/index.html"
+      # NOTE: In the future, you can probably use jsdoc2md
+      jsdoc.renderSync
+        files: filePath
+        destination: createTempDir()
+        configure: getConfigFilePath()
+      file = fs.readFileSync path.join tempDir, 'index.html'
     catch e
       return callback e, null
 
     el.innerHTML = file
-
     nav = el.querySelector 'nav'
 
     [].forEach.call nav.querySelectorAll('ul li a'), (link) ->
       href = link.getAttribute('href').replace /#.*$/, ''
-      domFragment.appendChild htmlFileToDOMFragment "#{packagePath}/.jsdoc-preview-doc/#{href}"
+      domFragment.appendChild htmlFileToDOMFragment path.join tempDir, href
 
-    unless domFragment.innerHTML
-      domFragment.innerHTML = '<h2>No JSDocs to Preview</h2>'
+
+    domFragment.innerHTML = '<h2>No JSDocs to Preview</h2>' unless domFragment.innerHTML
 
     callback null, domFragment.innerHTML
-
-getConfig = () ->
-  config = atom.config.get 'jsdoc-preview.configFilePath'
-  config = "#{packagePath}/conf.json" if config is 'conf.json'
-
-  config
+  _getConfigFilePath: getConfigFilePath
+  _createTempDir: createTempDir
 
 htmlFileToDOMFragment = (filePath) ->
   el = document.createElement 'div'

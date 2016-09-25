@@ -1,7 +1,7 @@
 path = require 'path'
 
-{Emitter, Disposable, CompositeDisposable, File} = require 'atom'
-{$$$, ScrollView} = require 'atom-space-pen-views'
+{ Emitter, Disposable, CompositeDisposable, File } = require 'atom'
+{ $$$, ScrollView } = require 'atom-space-pen-views'
 
 renderer = require './renderer'
 
@@ -104,7 +104,7 @@ module.exports = class extends ScrollView
 
   renderJSDoc: ->
     @showLoading() unless @loaded
-    @getJSDocSource().then (source) => @renderJSDocText(source) if source?
+    @getJSDocSource().then (source) => @renderJSDocText()
 
   getJSDocSource: ->
     if @file?.getPath()
@@ -114,8 +114,8 @@ module.exports = class extends ScrollView
     else
       Promise.resolve null
 
-  renderJSDocText: (text) ->
-    renderer.toDOMFragment text, @getPath(), @getGrammar(), (error, domFragment) =>
+  renderJSDocText: () ->
+    renderer.toDOMFragment @getPath(), (error, domFragment) =>
       if error
         @showError error
       else
@@ -132,13 +132,7 @@ module.exports = class extends ScrollView
       "#{@editor.getTitle()} Preview"
     else "JSDoc Preview"
 
-  getIconName: -> "jsdoc"
-
-  getURI: ->
-    if @file?
-      "jsdoc-preview://#{@getPath()}"
-    else
-      "jsdoc-preview://editor/#{@editorId}"
+  getURI: -> if @file then "jsdoc-preview://#{@getPath()}" else "jsdoc-preview://editor/#{@editorId}"
 
   getPath: ->
     if @file?
@@ -157,5 +151,4 @@ module.exports = class extends ScrollView
 
   showLoading: ->
     @loading = true
-    @html $$$ ->
-      @div class: 'jsdoc-spinner', 'Loading JSDoc\u2026'
+    @html $$$ -> @div class: 'jsdoc-spinner', 'Loading JSDoc\u2026'

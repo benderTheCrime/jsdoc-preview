@@ -1,6 +1,14 @@
 view = require './view'
 renderer = require './renderer'
 
+grammars = [
+  'source.js'
+  'source.javascript'
+  'source.es6'
+  'souce.coffee'
+  'source.litcoffee'
+]
+
 isView = (v) -> v instanceof view
 
 module.exports =
@@ -34,17 +42,12 @@ module.exports =
       new view(state)
 
   toggle: ->
-    if isView(atom.workspace.getActivePaneItem())
-      atom.workspace.destroyActivePaneItem()
-      return
+    if isView atom.workspace.getActivePaneItem()
+      return atom.workspace.destroyActivePaneItem()
 
     editor = atom.workspace.getActiveTextEditor()
 
-    return unless editor? and editor.getGrammar().scopeName in [
-      'source.js',
-      'source.javascript',
-      'source.es6'
-    ]
+    return unless editor? and editor.getGrammar().scopeName in grammars
 
     @addPreviewForEditor(editor) unless @removePreviewForEditor editor
 
@@ -54,7 +57,7 @@ module.exports =
     uri = @uriForEditor(editor)
     previewPane = atom.workspace.paneForURI(uri)
     if previewPane?
-      previewPane.destroyItem(previewPane.itemForURI(uri))
+      previewPane.destroyItem previewPane.itemForURI uri
       true
     else
       false
